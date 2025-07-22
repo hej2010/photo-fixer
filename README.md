@@ -10,11 +10,14 @@ Photo-fixer is a simple tool that embeds EXIF metadata from `supplemental-metada
 - 📅 Extracts the photo taken date (`DateTimeOriginal`), GPS position and camera make and model from the JSON metadata
 - 🏷️ Embeds the metadata into the original image and video files
 
----
-
 ## Requirements
 
 - **Pyton 3** - https://www.python.org/downloads/
+- **ExifTool** - https://exiftool.org/
+  - **Windows**: install with `winget install OliverBetz.ExifTool`
+  - **MacOS**: install with `brew install exiftool`
+  - **Ubuntu/Debian**: install with `sudo apt install exiftool`
+  - **CentOS/RHEL/Fedora**: install with `sudo yum install perl-Image-ExifTool` or `sudo dnf install perl-Image-ExifTool`
 
 Then install the Python packages:
 - **pyexiv2** - install with `pip install pyexiv2`
@@ -28,3 +31,7 @@ Then install the Python packages:
 py main.py "/path/to/export/root/folder"
 ```
 where the first program argument is the path to a Google Takeout folder (or any folder containing images/videos and JSON files).
+
+## 
+
+This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
