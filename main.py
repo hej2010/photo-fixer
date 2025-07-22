@@ -88,6 +88,7 @@ def write_metadata(file, json_file):
           params=["-P", "-overwrite_original"] # preserve modification date and overwrite original
       )
     except Exception as e:
+      print(file.path)
       print("Error:", e)
       return
   else:
@@ -103,6 +104,7 @@ def write_metadata(file, json_file):
               params=["-P", "-overwrite_original"]
             )
       except Exception as e2:
+        print(file.path)
         print("Error:", e)
         return
 
@@ -142,6 +144,7 @@ for (dirpath, dirnames, filenames) in walk(path, topdown=True):
   for i, file in enumerate(files):
     for json_file in json_files:
       if (json_file.name.startswith(file.name) and json_file.name.split(file.name, 2)[1].count(".") == 2):
+        print("\033[K", end="\r")
         print(i + 1,"/", file_count, file.name, end='\r')
         write_metadata(file, json_file)
   print()
