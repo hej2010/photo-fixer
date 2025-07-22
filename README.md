@@ -12,7 +12,7 @@ Photo-fixer is a simple tool that embeds EXIF metadata from `supplemental-metada
 
 ## Requirements
 
-- **Pyton 3** - https://www.python.org/downloads/
+- **Python 3** - https://www.python.org/downloads/
 - **ExifTool** - https://exiftool.org/
   - **Windows**: install with `winget install OliverBetz.ExifTool`
   - **MacOS**: install with `brew install exiftool`
