@@ -135,7 +135,6 @@ for (dirpath, dirnames, filenames) in walk(path, topdown=True):
       files.append(FileItem(file, os.path.join(dirpath, file), True))
 
   print("Files:", len(files), "JSON:", len(json_files))
-  print()
 
   file_count = len(files)
   if (file_count == 0):
