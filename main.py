@@ -34,15 +34,19 @@ def deg_to_dms(deg):
   s = int(((deg - d) * 60 - m) * 60)
   return ((d, 1), (m, 1), (s, 1))
 
+def utc_to_local(utc_dt):
+    return utc_dt.replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
+
 def get_exif_exiv2(taken_time, latitude, longitude, altitude, camera_make, camera_model):
   new_exif = {} # https://exiv2.org/tags.html
+  has_loc = latitude != 0.0 and longitude != 0.0
   if (taken_time is not None):
-    new_exif['Exif.Image.DateTimeOriginal'] = datetime.datetime.fromtimestamp(int(taken_time), datetime.UTC).strftime("%Y:%m:%d %H:%M:%S")
-  if (latitude is not None):
+    new_exif['Exif.Photo.DateTimeOriginal'] = utc_to_local(datetime.datetime.fromtimestamp(int(taken_time), datetime.UTC)).strftime("%Y:%m:%d %H:%M:%S")
+  if (latitude is not None and has_loc):
     new_exif['Exif.GPSInfo.GPSLatitude'] = deg_to_dms(latitude)
-  if (longitude is not None):
+  if (longitude is not None and has_loc):
     new_exif['Exif.GPSInfo.GPSLongitude'] = deg_to_dms(longitude)
-  if (altitude is not None):
+  if (altitude is not None and has_loc):
     new_exif['Exif.GPSInfo.GPSAltitude'] = altitude
   if (camera_make is not None):
     new_exif['Exif.Image.Make'] = camera_make
@@ -52,13 +56,14 @@ def get_exif_exiv2(taken_time, latitude, longitude, altitude, camera_make, camer
 
 def get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, camera_model):
   new_exif = {}
+  has_loc = latitude != 0.0 and longitude != 0.0
   if (taken_time is not None):
-    new_exif['DateTimeOriginal'] = datetime.datetime.fromtimestamp(int(taken_time), datetime.UTC).strftime("%Y:%m:%d %H:%M:%S")
-  if (latitude is not None):
+    new_exif['DateTimeOriginal'] = utc_to_local(datetime.datetime.fromtimestamp(int(taken_time), datetime.UTC)).strftime("%Y:%m:%d %H:%M:%S")
+  if (latitude is not None and has_loc):
     new_exif['GPSLatitude'] = deg_to_dms(latitude)
-  if (longitude is not None):
+  if (longitude is not None and has_loc):
     new_exif['GPSLongitude'] = deg_to_dms(longitude)
-  if (altitude is not None):
+  if (altitude is not None and has_loc):
     new_exif['GPSAltitude'] = altitude
   if (camera_make is not None):
     new_exif['Make'] = camera_make
@@ -67,7 +72,7 @@ def get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, ca
   return new_exif
 
 def write_metadata(file, json_file):
-  f = open(json_file.path)
+  f = open(json_file.path, encoding='utf-8')
   data = json.load(f)
   f.close()
   
