@@ -30,12 +30,6 @@ class FileItem:
 def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
 
-def deg_to_dms(deg):
-  d = int(deg)
-  m = int((deg - d) * 60)
-  s = int((((deg - d) * 60 - m) * 60) * 100) / 100
-  return str(d) + " " + str(m) + " " + str(s)
-
 def get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, camera_model):
   # https://sylikc.github.io/pyexiftool/examples.html
   # https://exiftool.org/TagNames/GPS.html
