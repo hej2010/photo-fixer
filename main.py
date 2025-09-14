@@ -62,30 +62,17 @@ def write_metadata(file, json_file):
   camera_make = data.get('cameraMake')
   camera_model = data.get('cameraModel')
   
-  if (file.is_video == True):
-    try:
-      with ExifToolHelper() as et:
-        et.set_tags(
-          file.path,
-          tags=get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, camera_model),
-          params=["-P", "-overwrite_original"] # preserve modification date and overwrite original
-      )
-    except Exception as e:
-      print(file.path)
-      print("Error:", e)
-      return
-  else:
-    try:
-      with ExifToolHelper() as et:
-        et.set_tags(
-          file.path,
-          tags=get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, camera_model),
-          params=["-P", "-overwrite_original"]
-        )
-    except Exception as e:
-      print(file.path)
-      print("Error:", e)
-      return
+  try:
+    with ExifToolHelper() as et:
+      et.set_tags(
+        file.path,
+        tags=get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, camera_model),
+        params=["-P", "-overwrite_original"] # preserve modification date and overwrite original
+    )
+  except Exception as e:
+    print(file.path)
+    print("Error:", e)
+    return
 
 if len(sys.argv) < 2:
     print("Error: You must specify a folder path")
