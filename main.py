@@ -16,7 +16,7 @@ import os
 import json
 import datetime
 from os import walk
-from exiftool import ExifToolHelper
+from exiftool import ExifTool
 
 DTO_KEY = 'Exif.Photo.DateTimeOriginal'
 
@@ -30,26 +30,35 @@ class FileItem:
 def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
 
+def deg_to_dms(deg):
+  d = int(deg)
+  m = int((deg - d) * 60)
+  s = int((((deg - d) * 60 - m) * 60) * 100) / 100
+  return str(d) + " " + str(m) + " " + str(s)
+
 def get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, camera_model):
-  new_exif = {}
+  # https://sylikc.github.io/pyexiftool/examples.html
+  # https://exiftool.org/TagNames/GPS.html
+  # https://exiftool.org/TagNames/XMP.html
+  arr = []
   has_loc = latitude != 0.0 and longitude != 0.0
   if (taken_time is not None):
-    new_exif['DateTimeOriginal'] = utc_to_local(datetime.datetime.fromtimestamp(int(taken_time), datetime.UTC)).strftime("%Y:%m:%d %H:%M:%S")
+    arr.append('-DateTimeOriginal=' + utc_to_local(datetime.datetime.fromtimestamp(int(taken_time), datetime.UTC)).strftime("%Y:%m:%d %H:%M:%S"))
   if (latitude is not None and has_loc):
-    new_exif['GPSLatitude'] = latitude
-    new_exif['GPSLatitudeRef'] = 'E' if latitude >= 0  else 'W'
+    arr.append('-GPSLatitude=' + str(latitude))
+    arr.append('-GPSLatitudeRef=' + ('N' if latitude >= 0  else 'S'))
   if (longitude is not None and has_loc):
-    new_exif['GPSLongitude'] = longitude
-    new_exif['GPSLongitudeRef'] = 'N' if latitude >= 0  else 'S'
+    arr.append('-GPSLongitude=' + str(longitude))
+    arr.append('-GPSLongitudeRef=' + ('E' if longitude >= 0  else 'W'))
   if (altitude is not None and has_loc):
-    new_exif['GPSAltitude'] = altitude
+    arr.append('-GPSAltitude=' + str(altitude))
   if (camera_make is not None):
-    new_exif['Make'] = camera_make
+    arr.append('-Make=' + camera_make)
   if (camera_model is not None):
-    new_exif['Model'] = camera_model
-  return new_exif
+    arr.append('-Model=' + camera_model)
+  return arr
 
-def write_metadata(file, json_file):
+def write_metadata(file, json_file, et):
   f = open(json_file.path, encoding='utf-8')
   data = json.load(f)
   f.close()
@@ -63,12 +72,9 @@ def write_metadata(file, json_file):
   camera_model = data.get('cameraModel')
   
   try:
-    with ExifToolHelper() as et:
-      et.set_tags(
-        file.path,
-        tags=get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, camera_model),
-        params=["-P", "-overwrite_original"] # preserve modification date and overwrite original
-    )
+    tags = get_exif_exiftool(taken_time, latitude, longitude, altitude, camera_make, camera_model)
+    et.execute("-P", "-overwrite_original", *tags, file.path)
+    print(et.last_stdout, et.last_stderr)
   except Exception as e:
     print(file.path)
     print("Error:", e)
@@ -88,29 +94,30 @@ extensions_video = {
   "f4v", ".wmv", ".asf", ".rm", ".rmvb", ".vob", ".ogv", ".mxf", ".dv", ".divx", ".xvid"
 }
 
-path = sys.argv[1]
-for (dirpath, dirnames, filenames) in walk(path, topdown=True):
-  print("Find files in:", dirpath)
-  files = []
-  json_files = []
-  for file in filenames:
-    filename, file_extension = os.path.splitext(file)
-    if (file_extension == ".json"):
-      json_files.append(FileItem(file, os.path.join(dirpath, file), False))
-    elif (file_extension.lower() in extensions_image):
-      files.append(FileItem(file, os.path.join(dirpath, file), False))
-    elif (file_extension.lower() in extensions_video):
-      files.append(FileItem(file, os.path.join(dirpath, file), True))
+with ExifTool() as et:
+  path = sys.argv[1]
+  for (dirpath, dirnames, filenames) in walk(path, topdown=True):
+    print("Find files in:", dirpath)
+    files = []
+    json_files = []
+    for file in filenames:
+      filename, file_extension = os.path.splitext(file)
+      if (file_extension == ".json"):
+        json_files.append(FileItem(file, os.path.join(dirpath, file), False))
+      elif (file_extension.lower() in extensions_image):
+        files.append(FileItem(file, os.path.join(dirpath, file), False))
+      elif (file_extension.lower() in extensions_video):
+        files.append(FileItem(file, os.path.join(dirpath, file), True))
 
-  print("Files:", len(files), "JSON:", len(json_files))
+    print("Files:", len(files), "JSON:", len(json_files))
 
-  file_count = len(files)
-  if (file_count == 0):
-    continue
-  for i, file in enumerate(files):
-    for json_file in json_files:
-      if (json_file.name.startswith(file.name) and json_file.name.split(file.name, 2)[1].count(".") == 2):
-        print("\033[K", end="\r")
-        print(i + 1,"/", file_count, file.name, end='\r')
-        write_metadata(file, json_file)
-  print()
+    file_count = len(files)
+    if (file_count == 0):
+      continue
+    for i, file in enumerate(files):
+      for json_file in json_files:
+        if (json_file.name.startswith(file.name) and json_file.name.split(file.name, 2)[1].count(".") == 2):
+          #print("\033[K", end="\r")
+          print(i + 1,"/", file_count, file.name)
+          write_metadata(file, json_file, et)
+    print()
