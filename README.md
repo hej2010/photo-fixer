@@ -20,7 +20,6 @@ Photo-fixer is a simple tool that embeds EXIF metadata from `supplemental-metada
   - **CentOS/RHEL/Fedora**: install with `sudo yum install perl-Image-ExifTool` or `sudo dnf install perl-Image-ExifTool`
 
 Then install the Python packages:
-- **pyexiv2** - install with `pip install pyexiv2`
 - **pyexiftool** - install with `pip install pyexiftool`
 
 ## Quick start
@@ -28,7 +27,7 @@ Then install the Python packages:
 1. Download `main.py` to your computer
 2. Run the file with
 ```bash
-py main.py "/path/to/export/root/folder"
+py main.py "./path/to/export/root/folder"
 ```
 where the first program argument is the path to a Google Takeout folder (or any folder containing images/videos and JSON files).
 
